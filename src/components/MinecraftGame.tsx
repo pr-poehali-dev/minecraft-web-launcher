@@ -26,68 +26,57 @@ interface Block {
   z: number;
 }
 
-// CSS для 3D трансформации
-const blockFaceStyles = {
-  front: "absolute w-full h-full bg-opacity-90 transform translate-z-[16px]",
-  back: "absolute w-full h-full bg-opacity-70 transform -translate-z-[16px]",
-  left: "absolute w-[32px] h-full bg-opacity-80 transform rotateY(90deg) translate-z-[16px]",
-  right: "absolute w-[32px] h-full bg-opacity-80 transform rotateY(-90deg) translate-z-[16px]",
-  top: "absolute w-full h-[32px] bg-opacity-100 transform rotateX(90deg) translate-z-[16px]",
-  bottom: "absolute w-full h-[32px] bg-opacity-60 transform rotateX(-90deg) translate-z-[16px]",
-};
-
-// Стили цветов для разных типов блоков
-const blockColors: Record<BlockType, { top: string, side: string, bottom: string }> = {
-  grass: { 
-    top: "bg-[#7CBA4D]", 
-    side: "bg-[#91BD59] border-t-[4px] border-[#7CBA4D]", 
-    bottom: "bg-[#866043]" 
-  },
-  dirt: { 
-    top: "bg-[#866043]", 
-    side: "bg-[#866043]", 
-    bottom: "bg-[#866043]" 
-  },
-  stone: { 
-    top: "bg-[#8F8F8F]", 
-    side: "bg-[#8F8F8F]", 
-    bottom: "bg-[#8F8F8F]" 
-  },
-  wood: { 
-    top: "bg-[#9C7F4A] ring-1 ring-[#6B4F20] ring-inset", 
-    side: "bg-[#6B4F20] bg-[url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\"><rect x=\"0\" y=\"0\" width=\"32\" height=\"32\" fill=\"%236B4F20\"/><rect x=\"8\" y=\"0\" width=\"4\" height=\"32\" fill=\"%235C421B\" opacity=\"0.6\"/><rect x=\"20\" y=\"0\" width=\"4\" height=\"32\" fill=\"%235C421B\" opacity=\"0.6\"/></svg>')]", 
-    bottom: "bg-[#9C7F4A] ring-1 ring-[#6B4F20] ring-inset" 
-  },
-  leaves: { 
-    top: "bg-[#6CBD6A]", 
-    side: "bg-[#6CBD6A]", 
-    bottom: "bg-[#6CBD6A]" 
-  }
-};
-
 // Компонент блока в 3D
 const MinecraftBlock = ({ type, x, y, z }: Block) => {
+  const blockColors: Record<BlockType, { top: string, side: string, bottom: string }> = {
+    grass: { 
+      top: "bg-[#7CBA4D]", 
+      side: "bg-[#91BD59] border-t-[4px] border-[#7CBA4D]", 
+      bottom: "bg-[#866043]" 
+    },
+    dirt: { 
+      top: "bg-[#866043]", 
+      side: "bg-[#866043]", 
+      bottom: "bg-[#866043]" 
+    },
+    stone: { 
+      top: "bg-[#8F8F8F]", 
+      side: "bg-[#8F8F8F]", 
+      bottom: "bg-[#8F8F8F]" 
+    },
+    wood: { 
+      top: "bg-[#9C7F4A] ring-1 ring-[#6B4F20] ring-inset", 
+      side: "bg-[#6B4F20] bg-gradient-to-r from-[#6B4F20] to-[#6B4F20] via-[#5C421B]", 
+      bottom: "bg-[#9C7F4A] ring-1 ring-[#6B4F20] ring-inset" 
+    },
+    leaves: { 
+      top: "bg-[#6CBD6A]", 
+      side: "bg-[#6CBD6A]", 
+      bottom: "bg-[#6CBD6A]" 
+    }
+  };
+  
   const colors = blockColors[type];
   
   return (
     <div 
-      className="absolute w-[32px] h-[32px] transform-style-3d" 
+      className="absolute w-[32px] h-[32px]"
       style={{ 
         transform: `translate3d(${x * 32}px, ${y * 32}px, ${z * 32}px)`,
         transformStyle: 'preserve-3d'
       }}
     >
       {/* Верх */}
-      <div className={`${blockFaceStyles.top} ${colors.top}`}></div>
+      <div className={`absolute w-full h-full ${colors.top}`} style={{ transform: 'rotateX(90deg) translateZ(16px)' }}></div>
       
       {/* Низ */}
-      <div className={`${blockFaceStyles.bottom} ${colors.bottom}`}></div>
+      <div className={`absolute w-full h-full ${colors.bottom}`} style={{ transform: 'rotateX(-90deg) translateZ(16px)' }}></div>
       
       {/* Стороны */}
-      <div className={`${blockFaceStyles.front} ${colors.side}`}></div>
-      <div className={`${blockFaceStyles.back} ${colors.side}`}></div>
-      <div className={`${blockFaceStyles.left} ${colors.side}`}></div>
-      <div className={`${blockFaceStyles.right} ${colors.side}`}></div>
+      <div className={`absolute w-full h-full ${colors.side}`} style={{ transform: 'translateZ(16px)' }}></div>
+      <div className={`absolute w-full h-full ${colors.side}`} style={{ transform: 'rotateY(180deg) translateZ(16px)' }}></div>
+      <div className={`absolute w-full h-full ${colors.side}`} style={{ transform: 'rotateY(90deg) translateZ(16px)' }}></div>
+      <div className={`absolute w-full h-full ${colors.side}`} style={{ transform: 'rotateY(-90deg) translateZ(16px)' }}></div>
     </div>
   );
 };
@@ -362,12 +351,13 @@ const MinecraftGame = () => {
       ) : (
         <div 
           ref={gameContainerRef} 
-          className="h-full w-full bg-gradient-to-b from-[#87CEEB] to-[#E0F6FF] relative focus:outline-none perspective-[1000px] overflow-hidden"
+          className="h-full w-full bg-gradient-to-b from-[#87CEEB] to-[#E0F6FF] relative focus:outline-none overflow-hidden"
+          style={{ perspective: '1000px' }}
           tabIndex={0}
         >
           {/* 3D мир */}
           <div 
-            className="absolute inset-0 transform-style-3d"
+            className="absolute inset-0"
             style={{ 
               transformStyle: 'preserve-3d',
               transform: `rotateX(${cameraRotation.x}deg) rotateY(${cameraRotation.y}deg) translate3d(${-playerPosition.x * 32}px, ${-playerPosition.y * 32}px, ${-playerPosition.z * 32}px)`
@@ -410,25 +400,6 @@ const MinecraftGame = () => {
           </div>
         </div>
       )}
-      
-      {/* CSS для 3D-трансформаций */}
-      <style jsx>{`
-        .transform-style-3d {
-          transform-style: preserve-3d;
-        }
-        
-        .translate-z-\\[16px\\] {
-          transform: translateZ(16px);
-        }
-        
-        .-translate-z-\\[16px\\] {
-          transform: translateZ(-16px);
-        }
-        
-        .perspective-\\[1000px\\] {
-          perspective: 1000px;
-        }
-      `}</style>
     </div>
   );
 };
