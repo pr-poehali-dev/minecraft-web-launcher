@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  Box, 
-  Tree, 
-  Hammer, 
-  Sword, 
+  Square,
+  Leaf,
+  Axe,
+  Sword,
   ShoppingBag 
 } from 'lucide-react';
 
@@ -109,9 +109,9 @@ const MinecraftGame = () => {
   
   // Пример инвентаря с исправленными иконками
   const [inventory, setInventory] = useState<InventoryItem[]>([
-    { id: 1, name: 'Блок земли', icon: <Box className="text-yellow-800" />, count: 64 },
-    { id: 2, name: 'Дерево', icon: <Tree className="text-green-700" />, count: 32 },
-    { id: 3, name: 'Кирка', icon: <Hammer className="text-gray-500" />, count: 1 },
+    { id: 1, name: 'Блок земли', icon: <Square className="text-yellow-800" />, count: 64 },
+    { id: 2, name: 'Дерево', icon: <Leaf className="text-green-700" />, count: 32 },
+    { id: 3, name: 'Кирка', icon: <Axe className="text-gray-500" />, count: 1 },
     { id: 4, name: 'Меч', icon: <Sword className="text-gray-400" />, count: 1 }
   ]);
 
