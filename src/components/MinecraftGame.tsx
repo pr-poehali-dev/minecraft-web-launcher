@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  CubeIcon, 
-  TreePine, 
-  Pickaxe, 
+  Box, 
+  Tree, 
+  Hammer, 
   Sword, 
   ShoppingBag 
 } from 'lucide-react';
@@ -107,11 +107,11 @@ const MinecraftGame = () => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 50 });
   
-  // Пример инвентаря
+  // Пример инвентаря с исправленными иконками
   const [inventory, setInventory] = useState<InventoryItem[]>([
-    { id: 1, name: 'Блок земли', icon: <CubeIcon className="text-brown-600" />, count: 64 },
-    { id: 2, name: 'Дерево', icon: <TreePine className="text-green-700" />, count: 32 },
-    { id: 3, name: 'Кирка', icon: <Pickaxe className="text-gray-500" />, count: 1 },
+    { id: 1, name: 'Блок земли', icon: <Box className="text-yellow-800" />, count: 64 },
+    { id: 2, name: 'Дерево', icon: <Tree className="text-green-700" />, count: 32 },
+    { id: 3, name: 'Кирка', icon: <Hammer className="text-gray-500" />, count: 1 },
     { id: 4, name: 'Меч', icon: <Sword className="text-gray-400" />, count: 1 }
   ]);
 
