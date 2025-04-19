@@ -16,6 +16,82 @@ type InventoryItem = {
   count: number;
 };
 
+// Типы для блоков
+type BlockType = 'grass' | 'dirt' | 'stone' | 'wood' | 'leaves';
+
+interface Block {
+  type: BlockType;
+  x: number;
+  y: number;
+  z: number;
+}
+
+// CSS для 3D трансформации
+const blockFaceStyles = {
+  front: "absolute w-full h-full bg-opacity-90 transform translate-z-[16px]",
+  back: "absolute w-full h-full bg-opacity-70 transform -translate-z-[16px]",
+  left: "absolute w-[32px] h-full bg-opacity-80 transform rotateY(90deg) translate-z-[16px]",
+  right: "absolute w-[32px] h-full bg-opacity-80 transform rotateY(-90deg) translate-z-[16px]",
+  top: "absolute w-full h-[32px] bg-opacity-100 transform rotateX(90deg) translate-z-[16px]",
+  bottom: "absolute w-full h-[32px] bg-opacity-60 transform rotateX(-90deg) translate-z-[16px]",
+};
+
+// Стили цветов для разных типов блоков
+const blockColors: Record<BlockType, { top: string, side: string, bottom: string }> = {
+  grass: { 
+    top: "bg-[#7CBA4D]", 
+    side: "bg-[#91BD59] border-t-[4px] border-[#7CBA4D]", 
+    bottom: "bg-[#866043]" 
+  },
+  dirt: { 
+    top: "bg-[#866043]", 
+    side: "bg-[#866043]", 
+    bottom: "bg-[#866043]" 
+  },
+  stone: { 
+    top: "bg-[#8F8F8F]", 
+    side: "bg-[#8F8F8F]", 
+    bottom: "bg-[#8F8F8F]" 
+  },
+  wood: { 
+    top: "bg-[#9C7F4A] ring-1 ring-[#6B4F20] ring-inset", 
+    side: "bg-[#6B4F20] bg-[url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\"><rect x=\"0\" y=\"0\" width=\"32\" height=\"32\" fill=\"%236B4F20\"/><rect x=\"8\" y=\"0\" width=\"4\" height=\"32\" fill=\"%235C421B\" opacity=\"0.6\"/><rect x=\"20\" y=\"0\" width=\"4\" height=\"32\" fill=\"%235C421B\" opacity=\"0.6\"/></svg>')]", 
+    bottom: "bg-[#9C7F4A] ring-1 ring-[#6B4F20] ring-inset" 
+  },
+  leaves: { 
+    top: "bg-[#6CBD6A]", 
+    side: "bg-[#6CBD6A]", 
+    bottom: "bg-[#6CBD6A]" 
+  }
+};
+
+// Компонент блока в 3D
+const MinecraftBlock = ({ type, x, y, z }: Block) => {
+  const colors = blockColors[type];
+  
+  return (
+    <div 
+      className="absolute w-[32px] h-[32px] transform-style-3d" 
+      style={{ 
+        transform: `translate3d(${x * 32}px, ${y * 32}px, ${z * 32}px)`,
+        transformStyle: 'preserve-3d'
+      }}
+    >
+      {/* Верх */}
+      <div className={`${blockFaceStyles.top} ${colors.top}`}></div>
+      
+      {/* Низ */}
+      <div className={`${blockFaceStyles.bottom} ${colors.bottom}`}></div>
+      
+      {/* Стороны */}
+      <div className={`${blockFaceStyles.front} ${colors.side}`}></div>
+      <div className={`${blockFaceStyles.back} ${colors.side}`}></div>
+      <div className={`${blockFaceStyles.left} ${colors.side}`}></div>
+      <div className={`${blockFaceStyles.right} ${colors.side}`}></div>
+    </div>
+  );
+};
+
 // Компонент инвентаря
 const Inventory = ({ 
   isOpen, 
@@ -32,11 +108,11 @@ const Inventory = ({
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
       <div className="bg-[#c6c6c6] border-4 border-[#555555] p-4 rounded-sm w-[80%] max-w-md">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-minecraft text-[#555555]">Инвентарь</h2>
+          <h2 className="text-xl font-bold text-[#555555]">Инвентарь</h2>
           <Button 
             onClick={onClose} 
             variant="destructive" 
-            className="h-8 w-8 rounded-none"
+            className="h-8 w-8 rounded-sm"
           >
             X
           </Button>
@@ -79,7 +155,7 @@ const Hotbar = ({
         {items.slice(0, 9).map((item) => (
           <div 
             key={item.id} 
-            className="bg-[#8b8b8b] border-2 border-[#373737] p-2 h-12 w-12 flex items-center justify-center relative"
+            className="bg-[#8b8b8b] border-2 border-t-[#FFFFFF80] border-l-[#FFFFFF80] border-r-[#00000080] border-b-[#00000080] p-2 h-12 w-12 flex items-center justify-center relative"
           >
             <div className="text-2xl">{item.icon}</div>
             {item.count > 1 && (
@@ -92,7 +168,7 @@ const Hotbar = ({
         {Array(9 - Math.min(items.length, 9)).fill(0).map((_, i) => (
           <div 
             key={`empty-hotbar-${i}`} 
-            className="bg-[#8b8b8b] border-2 border-[#373737] h-12 w-12"
+            className="bg-[#8b8b8b] border-2 border-t-[#FFFFFF80] border-l-[#FFFFFF80] border-r-[#00000080] border-b-[#00000080] h-12 w-12"
           />
         ))}
       </div>
@@ -105,9 +181,52 @@ const MinecraftGame = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
   const gameContainerRef = useRef<HTMLDivElement>(null);
-  const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 50 });
+  const [playerPosition, setPlayerPosition] = useState({ x: 5, y: 1, z: 5 });
+  const [cameraRotation, setCameraRotation] = useState({ x: 0, y: 0 });
   
-  // Пример инвентаря с исправленными иконками
+  // Создание карты мира
+  const [blocks, setBlocks] = useState<Block[]>([]);
+  
+  // Инициализация мира
+  useEffect(() => {
+    if (gameStarted && blocks.length === 0) {
+      const newBlocks: Block[] = [];
+      
+      // Создаем плоскость из блоков земли
+      for (let x = 0; x < 10; x++) {
+        for (let z = 0; z < 10; z++) {
+          newBlocks.push({ type: 'grass', x, y: 2, z });
+          newBlocks.push({ type: 'dirt', x, y: 3, z });
+          newBlocks.push({ type: 'dirt', x, y: 4, z });
+        }
+      }
+      
+      // Добавляем несколько деревянных блоков (ствол дерева)
+      newBlocks.push({ type: 'wood', x: 3, y: 1, z: 3 });
+      newBlocks.push({ type: 'wood', x: 3, y: 0, z: 3 });
+      newBlocks.push({ type: 'wood', x: 3, y: -1, z: 3 });
+      
+      // Добавляем листву
+      for (let x = 2; x <= 4; x++) {
+        for (let z = 2; z <= 4; z++) {
+          for (let y = -3; y <= -1; y++) {
+            if (!(x === 3 && z === 3 && y > -3)) {
+              newBlocks.push({ type: 'leaves', x, y, z });
+            }
+          }
+        }
+      }
+      
+      // Добавляем камень
+      newBlocks.push({ type: 'stone', x: 7, y: 1, z: 7 });
+      newBlocks.push({ type: 'stone', x: 7, y: 1, z: 8 });
+      newBlocks.push({ type: 'stone', x: 8, y: 1, z: 7 });
+      
+      setBlocks(newBlocks);
+    }
+  }, [gameStarted, blocks.length]);
+  
+  // Пример инвентаря с иконками
   const [inventory, setInventory] = useState<InventoryItem[]>([
     { id: 1, name: 'Блок земли', icon: <Square className="text-yellow-800" />, count: 64 },
     { id: 2, name: 'Дерево', icon: <Leaf className="text-green-700" />, count: 32 },
@@ -127,32 +246,82 @@ const MinecraftGame = () => {
 
       if (isInventoryOpen) return;
 
-      const speed = 10;
+      const speed = 0.2;
+      // Вычисляем направление движения относительно поворота камеры
+      const angle = (cameraRotation.y * Math.PI) / 180;
+      const forwardX = Math.sin(angle);
+      const forwardZ = Math.cos(angle);
+
       switch (e.key) {
         case 'w':
-        case 'ArrowUp':
-          setPlayerPosition(prev => ({ ...prev, y: Math.max(0, prev.y - speed) }));
+          setPlayerPosition(prev => ({ 
+            ...prev, 
+            x: prev.x + forwardX * speed, 
+            z: prev.z + forwardZ * speed 
+          }));
           break;
         case 's':
-        case 'ArrowDown':
-          setPlayerPosition(prev => ({ ...prev, y: Math.min(100, prev.y + speed) }));
+          setPlayerPosition(prev => ({ 
+            ...prev, 
+            x: prev.x - forwardX * speed, 
+            z: prev.z - forwardZ * speed 
+          }));
           break;
         case 'a':
-        case 'ArrowLeft':
-          setPlayerPosition(prev => ({ ...prev, x: Math.max(0, prev.x - speed) }));
+          setPlayerPosition(prev => ({ 
+            ...prev, 
+            x: prev.x - forwardZ * speed, 
+            z: prev.z + forwardX * speed 
+          }));
           break;
         case 'd':
-        case 'ArrowRight':
-          setPlayerPosition(prev => ({ ...prev, x: Math.min(100, prev.x + speed) }));
+          setPlayerPosition(prev => ({ 
+            ...prev, 
+            x: prev.x + forwardZ * speed, 
+            z: prev.z - forwardX * speed 
+          }));
+          break;
+        case ' ':
+          // Прыжок
+          setPlayerPosition(prev => ({ ...prev, y: prev.y - 1 }));
+          setTimeout(() => {
+            setPlayerPosition(prev => ({ ...prev, y: prev.y + 1 }));
+          }, 500);
           break;
       }
     };
 
+    // Обработка движения мыши для поворота камеры
+    const handleMouseMove = (e: MouseEvent) => {
+      if (document.pointerLockElement === gameContainerRef.current) {
+        setCameraRotation(prev => ({
+          x: Math.max(-90, Math.min(90, prev.x - e.movementY * 0.1)),
+          y: (prev.y + e.movementX * 0.1) % 360
+        }));
+      }
+    };
+
+    // Блокировка курсора при клике на игровую область
+    const handleGameClick = () => {
+      if (gameContainerRef.current) {
+        gameContainerRef.current.requestPointerLock();
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    if (gameContainerRef.current) {
+      gameContainerRef.current.addEventListener('click', handleGameClick);
+    }
+    
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (gameContainerRef.current) {
+        gameContainerRef.current.removeEventListener('click', handleGameClick);
+      }
     };
-  }, [gameStarted, isInventoryOpen]);
+  }, [gameStarted, isInventoryOpen, cameraRotation]);
 
   // Начало игры
   const startGame = () => {
@@ -193,39 +362,32 @@ const MinecraftGame = () => {
       ) : (
         <div 
           ref={gameContainerRef} 
-          className="h-full w-full bg-[#87CEEB] relative focus:outline-none"
+          className="h-full w-full bg-gradient-to-b from-[#87CEEB] to-[#E0F6FF] relative focus:outline-none perspective-[1000px] overflow-hidden"
           tabIndex={0}
         >
-          {/* Небо и земля */}
-          <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-[#8B5A2B]"></div>
-          <div className="absolute bottom-[50%] left-0 right-0 h-[1px] bg-[#8B5A2B]"></div>
-          
-          {/* Блоки в мире (упрощенный пример) */}
-          <div className="absolute bottom-[50%] left-[30%] w-16 h-16 bg-[#8B5A2B]"></div>
-          <div className="absolute bottom-[50%] left-[40%] w-16 h-16 bg-[#8B5A2B]"></div>
-          <div className="absolute bottom-[50%] left-[50%] w-16 h-16 bg-[#8B5A2B]"></div>
-          <div className="absolute bottom-[60%] left-[50%] w-16 h-16 bg-[#7D7D7D]"></div>
-          
-          {/* Деревья */}
-          <div className="absolute bottom-[50%] left-[20%] w-16 h-48 flex flex-col items-center">
-            <div className="w-16 h-16 bg-[#6B4226]"></div>
-            <div className="w-48 h-32 bg-[#267F00] rounded-lg transform -translate-y-4"></div>
+          {/* 3D мир */}
+          <div 
+            className="absolute inset-0 transform-style-3d"
+            style={{ 
+              transformStyle: 'preserve-3d',
+              transform: `rotateX(${cameraRotation.x}deg) rotateY(${cameraRotation.y}deg) translate3d(${-playerPosition.x * 32}px, ${-playerPosition.y * 32}px, ${-playerPosition.z * 32}px)`
+            }}
+          >
+            {/* Все блоки мира */}
+            {blocks.map((block, index) => (
+              <MinecraftBlock
+                key={index}
+                {...block}
+              />
+            ))}
           </div>
           
-          {/* Игрок */}
-          <div 
-            className="absolute w-8 h-16 bg-blue-500 z-10"
-            style={{ 
-              left: `${playerPosition.x}%`, 
-              top: `${playerPosition.y}%`,
-              transform: 'translate(-50%, -50%)'
-            }}
-          ></div>
-          
           {/* Прицел в центре экрана */}
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
-            <div className="w-6 h-[1px] bg-white"></div>
-            <div className="h-6 w-[1px] bg-white transform -translate-y-[50%] translate-x-[50%]"></div>
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 0H9V16H7V0Z" fill="white" fillOpacity="0.8"/>
+              <path d="M16 7V9H0V7H16Z" fill="white" fillOpacity="0.8"/>
+            </svg>
           </div>
           
           {/* Интерфейс */}
@@ -241,10 +403,32 @@ const MinecraftGame = () => {
           {/* Инструкции */}
           <div className="fixed top-4 left-4 text-white text-sm bg-black/50 p-2 rounded">
             <p>WASD - движение</p>
+            <p>Пробел - прыжок</p>
+            <p>Мышь - осмотреться</p>
             <p>E - открыть инвентарь</p>
+            <p>Клик - взаимодействие</p>
           </div>
         </div>
       )}
+      
+      {/* CSS для 3D-трансформаций */}
+      <style jsx>{`
+        .transform-style-3d {
+          transform-style: preserve-3d;
+        }
+        
+        .translate-z-\\[16px\\] {
+          transform: translateZ(16px);
+        }
+        
+        .-translate-z-\\[16px\\] {
+          transform: translateZ(-16px);
+        }
+        
+        .perspective-\\[1000px\\] {
+          perspective: 1000px;
+        }
+      `}</style>
     </div>
   );
 };
